@@ -1,3 +1,6 @@
+const DEFAULT_SHORTCUT = 'c';
+let shortcutKey = DEFAULT_SHORTCUT;
+
 function showToast(message) {
   // Find all existing toasters
   let toasters = document.querySelectorAll('#b-toaster-bottom-left');
@@ -77,8 +80,9 @@ function createCopyButton(link, title,isMainPage = false) {
   btn.setAttribute('data-container', 'body');
   btn.setAttribute('data-html', 'true');
   if(isMainPage){
-    btn.setAttribute('aria-keyshortcuts', 'c');
-    tooltip_text = tooltip_text + " <kbd class='flat gl-ml-2' aria-hidden=true>c</kbd>";
+    const shortcutLabel = shortcutKey === shortcutKey.toLowerCase() ? shortcutKey : `Shift+${shortcutKey}`;
+    btn.setAttribute('aria-keyshortcuts', shortcutLabel);
+    tooltip_text = tooltip_text + ` <kbd class='flat gl-ml-2' aria-hidden=true>${shortcutLabel}</kbd>`;
     btn.className = 'btn gl-button btn-default btn-md btn-default-tertiary btn-block gl-flex gl-new-dropdown-toggle gl-new-dropdown-icon-only btn-icon gl-new-dropdown-toggle-no-caret js-source-branch-copy';
     btn.setAttribute('data-placement', 'bottom');
 
@@ -139,13 +143,12 @@ function addCopyButton() {
       const tag = e.target.tagName.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
     
-      // Only trigger on plain 'c' without modifiers
+      // Case-sensitive match: an uppercase shortcut means Shift+letter
       if (
-        e.key.toLowerCase() === 'c' &&
+        e.key === shortcutKey &&
         !e.ctrlKey &&
         !e.altKey &&
-        !e.metaKey &&
-        !e.shiftKey
+        !e.metaKey
       ) {
         // Find the first visible copy button for MR title
         const btn =
@@ -162,9 +165,14 @@ function addCopyButton() {
   }
 }
 
-addCopyButton();
+// Load the shortcut before injecting buttons so the tooltip shows the right key
+chrome.storage.sync.get({ shortcutKey: DEFAULT_SHORTCUT }, (settings) => {
+  shortcutKey = settings?.shortcutKey || DEFAULT_SHORTCUT;
 
-const observer = new MutationObserver(addCopyButton);
-observer.observe(document.body, { childList: true, subtree: true });
+  addCopyButton();
+
+  const observer = new MutationObserver(addCopyButton);
+  observer.observe(document.body, { childList: true, subtree: true });
+});
 
 

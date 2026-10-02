@@ -4,8 +4,12 @@
   "version": "1.0",
   "description": "Adds a copy button to GitLab merge requests. Automatically copies the merge request URL and title.",
   "permissions": [
-    "clipboardWrite"
+    "clipboardWrite",
+    "storage"
   ],
+  "options_ui": {
+    "page": "options.html"
+  },
   "content_scripts": [
     {
       "matches": ["https://gitlab.com/*"],
